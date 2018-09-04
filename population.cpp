@@ -1,6 +1,7 @@
 #include <iostream>
-#include <vector>
+#include <sstream>
 #include <random>
+#include <r_socket.h>
 
 #include "include/population.hpp"
 #include "include/sandbox.hpp"
@@ -10,7 +11,9 @@
 using namespace std;
 
 Population::Population(unsigned int popu_sz, unsigned long geno_sz) {
+    this->id = rand() % 1024;
     this->sandbox = new Sandbox();
+    //this->sandbox->debug();
     this->pop_sz = popu_sz;
     this->geno_sz = geno_sz;
     for (unsigned int i=0; i<popu_sz; i++) {
@@ -22,11 +25,13 @@ Population::Population(unsigned int popu_sz, unsigned long geno_sz) {
     for (register int i=0; i<popu_sz; i++) {
         this->sorted.push_back(i);
     }
+    cout << "Population engine on " << this->id << endl;
 }
 
 Population::~Population() {
     delete this->sandbox;
     this->clear();
+    cout << "Population engine off" << endl;
 }
 
 void Population::clear() {
@@ -59,8 +64,22 @@ void Population::sort(void) {
         this->sorted[i] = tmp;
     }
 
-    this->best = this->popu[this->sorted[0]]->clone();
 
+    this->best = this->popu[this->sorted[0]]; //->clone();
+
+    // Save Best to file
+
+    stringstream filename;
+    filename << "best_" << this->best->get_fitness() << ".bin";
+    this->best->save(filename.str().c_str());
+
+
+
+    /*
+    if (!this->best || this->popu[this->sorted[0]]->get_fitness() > this->best->get_fitness()) {
+        this->best = this->popu[this->sorted[0]]->clone();
+
+    }*/
 }
 
 void Population::eval(void) {
@@ -68,9 +87,22 @@ void Population::eval(void) {
         this->popu[i]->random();
         this->sandbox->run(this->popu[i]);
     }
+}
 
+
+void Population::crossover2(void) {
+    //TODO: crossver of logical instructions
 
 }
+
+static void r2cmd(R2Pipe *r2, const char *cmd) {
+    char *msg = r2p_cmd(r2, cmd);
+    if (msg) {
+        printf ("%s\n", msg);
+        free (msg);
+    }
+}
+
 
 void Population::crossover(void) {
     char *gen1, *gen2;
@@ -199,7 +231,15 @@ void Population::crossover(void) {
     }
 }
 
-void Population::mutate(void) {
+void Population::mutate2(int prob) {
+    //TODO: reimplement mutation engine
+    for (int i=0; i<this->popu.size(); i++) {
+
+
+    }
+}
+
+void Population::mutate(int prob) {
     // more probabilities to have a ret or a int or a mov eax
 
     char NEAR_RET = 0xc3;
@@ -211,57 +251,59 @@ void Population::mutate(void) {
     char MOV_EDX = 0xba;
     char INC_EAX = 0x40;
     char XOR_EAX = 0x35;
-    char INT80[] = "\xfd\x80";
-    char SYSENTER[] = "\x0f\x05";
-    char SYSENTER2[] = "\x0f\x34";
+    char INT80[] = "\xfd\x80"; // 0
+    char SYSENTER[] = "\x0f\x05"; // 5
+    char SYSENTER2[] = "\x0f\x34"; // 4  
     char INT = 0xfd;
 
-    for (int i=0; i<this->popu.size(); i++) {
-        if (rand()%3 == 1) {
+    for (int i=0; i<this->ng.size(); i++) {
+        if (rand()%100 == prob) {
             int pos = rand() % this->geno_sz;
 
+
+
             if (rand()%100 <= 30) {
-                this->popu[i]->put(pos, INC_EAX);
+                this->ng[i]->put(pos, INC_EAX);
 
             } else if(rand()%100 <= 20) {
-                this->popu[i]->put(pos, XOR_EAX);
+                this->ng[i]->put(pos, XOR_EAX);
 
             } else if (pos<this->geno_sz-1 && rand()%100<=30) {
-                this->popu[i]->put(pos, SYSENTER[0]);
-                this->popu[i]->put(pos+1, SYSENTER[1]);
+                this->ng[i]->put(pos, SYSENTER[0]);
+                this->ng[i]->put(pos+1, SYSENTER[1]);
 
             } else if (pos<this->geno_sz-1 && rand()%100<=20) {
-                this->popu[i]->put(pos, SYSENTER2[0]);
-                this->popu[i]->put(pos+1, SYSENTER2[1]);
+                this->ng[i]->put(pos, SYSENTER2[0]);
+                this->ng[i]->put(pos+1, SYSENTER2[1]);
 
             } else if (pos<this->geno_sz-1 && rand()%100<=20) {
-                this->popu[i]->put(pos, INT80[0]);
-                this->popu[i]->put(pos+1, INT80[1]);
+                this->ng[i]->put(pos, INT80[0]);
+                this->ng[i]->put(pos+1, INT80[1]);
 
             } else if(rand()%100 <= 20) {
                 switch(rand()%4) {
-                    case 0: this->popu[i]->put(pos, MOV_EAX); break;
-                    case 1: this->popu[i]->put(pos, MOV_EBX); break;
-                    case 2: this->popu[i]->put(pos, MOV_ECX); break;
-                    case 3: this->popu[i]->put(pos, MOV_EDX); break;
+                    case 0: this->ng[i]->put(pos, MOV_EAX); break;
+                    case 1: this->ng[i]->put(pos, MOV_EBX); break;
+                    case 2: this->ng[i]->put(pos, MOV_ECX); break;
+                    case 3: this->ng[i]->put(pos, MOV_EDX); break;
                 }
             } else if(rand()%100 <= 20) {
-                this->popu[i]->put(pos, '\x00');
+                this->ng[i]->put(pos, '\x00');
 
             } else if(rand()%100 <= 20) {
-                this->popu[i]->put(pos, INT);
+                this->ng[i]->put(pos, INT);
 
             } else if(rand()%100 <= 20) {
-                this->popu[i]->put(pos, NEAR_RET);
+                this->ng[i]->put(pos, NEAR_RET);
 
             } else if(rand()%100 <= 20) {
-                this->popu[i]->put(pos, 0x0f);
+                this->ng[i]->put(pos, 0x0f);
 
             } else if(rand()%100 <= 20) {
-                this->popu[i]->put(pos, FAR_RET);
+                this->ng[i]->put(pos, FAR_RET);
 
             } else {
-                this->popu[i]->put(pos, rand()%255);
+                this->ng[i]->put(pos, rand()%255);
             }
         }
     }
@@ -273,6 +315,7 @@ void Population::change_generation() {
         this->popu.push_back(this->ng[i]);
     }
     this->ng.clear();
+    this->best = NULL;
 }
 
 void Population::show_fitness(void) {
@@ -282,59 +325,65 @@ void Population::show_fitness(void) {
 
 void Population::diversity(void) {
     register long sz = this->popu.size();
-    while(this->popu.size() < this->pop_sz) {
-        this->popu.push_back(this->popu[rand()%sz]);
+    while(this->ng.size() < this->pop_sz) {
+        this->ng.push_back(this->popu[rand()%sz]);
     }
 }
+
+
+// Core
 
 void Population::evolve(unsigned int generations) {
     unsigned int g;
     cout << "Start evolving ... " << endl;
-    for (g=0; g<generations; g++) {
+    for (g=1; g<generations; g++) {
 
         this->eval();
         this->sort();
 
         //this->show_fitness();
 
-
-
         float sum = 0;
         for (int i=0; i<this->popu.size(); i++) {
+            //cout << "finess[" << i << "]: " << this->popu[i]->get_fitness() << endl;
             sum += this->popu[i]->get_fitness();
         }
-        cout << "======================================================================" << endl;
+        sum /= this->popu.size();
+
+        this->best->save("best.gen.bin");
+        R2Pipe *r2 = r2p_open ("r2 -q0 best.gen.bin");
+        if (r2) {
+            r2cmd(r2, "pD 0x10");
+            r2p_close(r2);
+        }
+
+        cout << this->id << " ======================================================================" << endl;
         cout << "Generation " << g << " best fitness: " << this->best->get_fitness();
-        cout << " population: " << this->popu.size() << " total fitness: " << sum << endl;
-        //this->best->show();
+        cout << " population: " << this->popu.size() << " global fitness: " << sum << " mutation: " << 8/g << endl;
+        this->best->show();
         cout << "======================================================================" << endl;
         if (g>=generations)
             break;
 
         this->ng.clear();
         this->crossover();
-        this->change_generation();
-        this->mutate();
-
+        this->mutate(8/g);
 
         // best survive
         for (int i=0; i<3; i++)
-            this->popu.push_back(this->best->clone());
+            this->ng.push_back(this->best->clone());
+
 
         // one random
+
         Genotype *geno = new Genotype(this->geno_sz);
         geno->random();
-        this->popu.push_back(geno);
+        this->ng.push_back(geno);
 
         this->diversity();
-
+        this->change_generation();
 
     }
     cout << "Evolution completed" << endl;
-    this->popu[this->sorted[0]]->save("best.geno");
+    this->popu[this->sorted[0]]->save("final.best.geno");
 }
-
-
-
-
-

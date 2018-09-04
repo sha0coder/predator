@@ -1,10 +1,10 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <vector>
 #include <cstring>
 #include <string>
 #include <zconf.h>
+
 
 #include "sys/types.h"
 #include "sys/sysinfo.h"
@@ -31,6 +31,7 @@ bool Eval::loadLine(string filename, int line, char *buff, unsigned long sz) {
     return ret;
 }
 
+
 float Eval::getLoad() {
     float load = 0;
     char buff[11];
@@ -51,7 +52,6 @@ float Eval::getOOM() {
     char buff[11];
     stringstream filename;
     filename << "/proc/" << this->pid << "/oom_score";
-
     buff[10] = 0x00;
     if (this->loadLine(filename.str(), 1, buff, 10)) {
         load = stof(buff);
@@ -59,6 +59,7 @@ float Eval::getOOM() {
 
     return load;
 }
+
 
 float Eval::getIO() {
     int line = 0;
@@ -87,6 +88,8 @@ float Eval::getIO() {
 }
 
 float Eval::getCPU() {
+
+
     return 0;
 }
 
@@ -109,13 +112,80 @@ int Eval::getNumMaps() {
     return maps;
 }
 
+
+
+char *Eval::nextWord(char *phrase) {
+    char *p = phrase;
+    while (*p != 0x00 && *p != ' ')
+        p++;
+
+    if (*p==0x00 || *(p+1)==0x00)
+        return NULL;
+
+    return p+1;
+}
+
+float Eval::getMemScore() {
+    stringstream filename;
+    filename << "/proc/" << this->pid << "/statm";
+    char buff[50];
+    memset(buff, 0, 50);
+
+    float statm[7];
+
+    if (this->loadLine(filename.str(), 1, buff, 49)) {
+        char *p = buff;
+        int i = 0;
+        float val0 = stof(p);
+        statm[i++] = val0;
+
+        //cout << buff << endl;
+
+        while ((p = this->nextWord(p)) != NULL) {
+            float val = stof(p);
+            statm[i++] = val;
+        }
+    }
+
+    // MEM SCORING
+    float mscore = 0;
+
+    mscore += statm[0]/1000;
+    if (mscore<0)
+        mscore = 0;
+
+    mscore += statm[1]/50;
+
+    mscore += statm[2];
+
+    mscore += statm[3]-10;
+
+    mscore += statm[4];
+
+    mscore += statm[5]/100;
+
+    mscore += statm[6];
+
+    //cout << "mscore: " << mscore << endl;
+
+    return mscore;
+}
+
+
 float Eval::get_fitness() {
+    // dynaic fitness
+
     int maps;
     float score = 0;
     if (getuid() == 0 || geteuid() == 0 || getgid() == 0)
         return 1000;
 
-    score += this->getOOM()*4;
+    // avoid be detected by kernel's OOM Killer
+    float oom = this->getOOM();
+    if (oom > 0)
+        cout << "oom score: " << oom << endl;
+
+    score -= oom*10;
 
     maps = this->getNumMaps();
     if (maps>30)
@@ -123,8 +193,14 @@ float Eval::get_fitness() {
 
     score += this->getIO();
 
+    score += this->getMemScore();
+
+
     return  score;
 }
+
+
+
 
 /*
 

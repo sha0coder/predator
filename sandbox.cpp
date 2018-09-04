@@ -4,7 +4,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
-
+#include <random>
+#include <sys/resource.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <zconf.h>
@@ -12,14 +13,17 @@
 
 
 Sandbox::Sandbox() {
+    this->isDebug = false;
     this->ready = false;
     std::cout << "Loading sandbox ..." << std::endl;
     int page_size = 0xfff;
     int geno_sz = 100;
     int page_sz = getpagesize();
     int pages = geno_sz/page_sz + 1;
+    this->TIMEOUT = 2;
     this->pool_sz = pages * page_sz;
     this->pool = (char *)malloc(this->pool_sz);
+    
     if (this->pool <= 0) {
         std::cout << "The Sandbox cannot allocate the pool size of " << this->pool_sz << std::endl;
         return;
@@ -30,6 +34,7 @@ Sandbox::Sandbox() {
         perror("mprotect");
         return;
     }
+
     this->clear();
     this->ready = true;
     std::cout << "sandbox ready." << std::endl;
@@ -39,6 +44,11 @@ Sandbox::~Sandbox() {
     if (this->pool>0)
         free(this->pool);
     this->pool = 0;
+    std::cout << "sandbox unloaded. :(" << std::endl;
+}
+
+void Sandbox::debug() {
+    this->isDebug = true;
 }
 
 void Sandbox::clear(void) {
@@ -58,12 +68,16 @@ void Sandbox::clear(void) {
 }
 
 void Sandbox::load(char *code, unsigned long len) {
+    char NEAR_RET = 0xC3;
+    char FAR_RET = 0xCB;
+
     if (len > this->pool_sz-5) {
         std::cout << "Sandbox: Aborting load, code too long, len: " << len << std::endl;
         return;
     }
     this->clear();
     memcpy(this->pool, code, len);
+    memset(this->pool+len, NEAR_RET, 5);
 }
 
 void Sandbox::launch(void) {
@@ -71,8 +85,18 @@ void Sandbox::launch(void) {
     fptr();
 }
 
+int pipefd[2];
+
+void pipe_alarm(int sig) {
+    char cfitness[6] = "err";
+    std::cout << "alarm!!" <<  std::endl;
+    write(pipefd[1], cfitness, 4);
+    close(pipefd[1]);
+}
+
+
 void Sandbox::run(Genotype *geno) {
-    int pid, stat, sz, pipefd[2];
+    int pid, stat, sz;
     char cfitness[6];
 
 
@@ -84,24 +108,42 @@ void Sandbox::run(Genotype *geno) {
         return;
     }
 
+    //geno->save("run.gen.bin");
+
     pid = fork();
     if (pid<0) {
         std::cout << "Sandbox: fork failed!!" << std::endl;
+        close(pipefd[0]);
+        close(pipefd[1]);
         return;
     }
 
     if (pid==0) { // GDB debug: set follow-fork-mode child
         // setsid();
         pid = getpid();
-        sigaction(SIGSEGV, NULL, NULL);
 
-        alarm(4);
+        // prepare signals
+        sigaction(SIGSEGV, NULL, NULL);
+        alarm(this->TIMEOUT);
+
         this->launch();
 
-        //std::cout << "from child" << std::endl;
+        // std::cout << "from child" << std::endl;
+
+
+        /*
+        struct rusage *r_usage;
+        if (getrusage(RUSAGE_SELF, r_usage) ==0) {
+            r_usage.
+        }*/
+
+
         Eval eval(pid);
         sprintf(cfitness, "%f", eval.get_fitness());
+
+        // send the fitness through a pipe
         write(pipefd[1], cfitness, strlen(cfitness));
+        close(pipefd[1]);
         exit(1);
 
     } else {
@@ -109,33 +151,74 @@ void Sandbox::run(Genotype *geno) {
         //std::cout << "waiting child" << std::endl;
 
         wait(&stat); //pid(pid);
+        //unsigned long id = rand() % 1000;
+        unsigned long result = 0;
 
         if (WCOREDUMP(stat)) {
-            std::cout << "COREDUMPED!! " << std::endl;
-            geno->show();
-            geno->save("coredump.gen");
-        }
+            if (this->isDebug)
+                std::cout << " EXECUTION CRASHED!! " << std::endl;
+            result = this->RES_CRASH;
+            geno->set_fitness(0);
+            //kill(pid, SIGKILL);
+            //kill(pid, SIGHUP);
 
-
-        if (WIFSIGNALED(stat)) {
-            if (WTERMSIG(stat)) {
-                //std::cout << "ALARM!! " << std::endl;
-            }
-        }
-
-        if (WIFEXITED(stat)) {
-            sz = read(pipefd[0], cfitness, 4);
-            geno->set_fitness(std::stof(cfitness)+2);
-
+            //geno->show();
+            //geno->save("coredump.gen");
         } else {
-            //std::cout << "signaled" << std::endl;
-            Eval eval(pid);
-            geno->set_fitness(eval.get_fitness());
 
-            kill(pid, SIGKILL);
-            kill(pid, SIGHUP);
+            if (WIFSIGNALED(stat)) {
+                if (WTERMSIG(stat)) {
+                    // SIGALARM timeout
+                    if (this->isDebug)
+                        std::cout << " EXECUTION TIMEOUT!! " << std::endl;
+                    result = this->RES_TIMEOUT;
+                    geno->set_fitness(1);
+
+                    //kill(pid, SIGKILL);
+                    //kill(pid, SIGHUP);
+                }
+            }
+
+            if (WIFEXITED(stat)) {
+
+                signal(SIGALRM, pipe_alarm);
+                alarm(this->TIMEOUT);
+                sz = read(pipefd[0], cfitness, 4);
+                alarm(0);
+                signal(SIGALRM, NULL);
+                if (strcmp(cfitness, "err")==0) {
+                    std::cout << "err received!!" << std::endl;
+                    cfitness[0] = '0';
+                    cfitness[1] = 0x00;
+                }
+
+
+                geno->set_fitness(2 + std::stof(cfitness));
+                if (this->isDebug)
+                    std::cout << " EXECUTION OK!!" << std::endl;
+                result = this->RES_OK;
+    
+
+            } else {
+                if (this->isDebug)
+                    std::cout << "signaled" << std::endl;
+
+
+                //Eval eval(pid);
+                //geno->set_fitness(eval.get_fitness());
+
+                //std::cout << " EXECUTION SIGNALED" << std::endl;
+                result = this->RES_UNKNOWN;
+                
+                //kill(pid, SIGKILL);
+                //kill(pid, SIGHUP);
+            }
+
         }
-
-
     }
+
+    close(pipefd[0]);
+    close(pipefd[1]);
 }
+
+

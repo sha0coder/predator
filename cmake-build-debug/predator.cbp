@@ -45,6 +45,7 @@
 				<Option compiler="gcc"/>
 				<Compiler>
 					<Add directory="/home/user/src/predator/include"/>
+					<Add directory="/usr/include/libr"/>
 					<Add directory="/usr/include/c++/4.9"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.9"/>
 					<Add directory="/usr/include/c++/4.9/backward"/>
@@ -69,6 +70,7 @@
 				<Option compiler="gcc"/>
 				<Compiler>
 					<Add directory="/home/user/src/predator/include"/>
+					<Add directory="/usr/include/libr"/>
 					<Add directory="/usr/include/c++/4.9"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.9"/>
 					<Add directory="/usr/include/c++/4.9/backward"/>

@@ -3,10 +3,12 @@
 #include <string>
 
 class Eval {
-    int pid;
-private:
 
+private:
+    int pid;
     bool loadLine(std::string filename, int line, char *buff, unsigned long sz);
+    char *nextWord(char *phrase);
+
 public:
     Eval(int pid);
     float getOOM();
@@ -16,7 +18,9 @@ public:
     float getLoad();
     float getCPU();
     float getVMEM();
+    float getMemScore();
     float get_fitness();
+    void puta();
 };
 
 

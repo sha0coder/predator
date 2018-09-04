@@ -2,7 +2,8 @@
 
 class Genotype {
 private:
-    float fitness;
+    R2Pipe *r2;     
+    float fitness;  // TODO: score struct, for detailed evolution tracking
     unsigned long sz;
     char *buff;
 
@@ -24,6 +25,9 @@ public:
     void set_fitness(float fitness);
     void put(int pos, char c);
     char get(int pos);
+    char *r2_asm_blocks(); // list with the size of each instruction
+    void r2_print_asm();
 };
+
 
 

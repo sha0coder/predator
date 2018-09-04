@@ -6,5 +6,5 @@ CXX_FLAGS = -g   -std=gnu++11
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/user/src/predator/include 
+CXX_INCLUDES = -I/home/user/src/predator/include -I/usr/include/libr 
 

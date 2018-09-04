@@ -1,0 +1,108 @@
+Evolutionary Algorithms (EAs)
+
+
+- 3 Experiments
+	E1) node.js that generate js code
+	E2) spocky: rust cpu emulator test case oriented
+	E3) C++ native binary code
+
+
+- 4 Use cases:
+
+  + Evolutive obfuscation 
+algorithm -> automatic tests generation -> new algorithm
+
+  generate malware?
+
+
+
+
+
+
+
+- E1 AI designing a trading strategy
+	- 2 functions per trader
+	- 100 traders per generation
+
+
+- AI programming
+
+
+
+- libc
+[  362.687108] predator[3880]: segfault at 558c3481716f ip 0000558c3481716f sp 00007ffd1d645698 error 14 in libc-2.25.so[7fe49975d000+1b8000]
+
+
+- Byte point of view  vs instruction point of view
+  - Byte point of view requires extra learning, but more coverage and easy implementation.
+  - instruction point of view requires implement the instruction set, but would speedup alot the learning.
+
+- Mutation
+  - Mutation is exploration, the more mutaiton more exploration but less optimization
+  - Hight mutation -> random search and dont converge
+  - academically should be 1/255
+  - Use low mutation or decreasing the probability with the generations -> crossover is a better way of mutation
+  - stagnations -> increase mutation
+  - evolving right -> decrease mutation
+  
+ 
+  - Mutation probability of opcodes, operands and inmediate values.
+  - Mutation probability bonus to of int 80 / sysenter and basic instructions
+  - Mutation that generates a segfault are discarded on the next generation.
+  - Mutation of the code length (additions and substrations)
+ 
+- Crossover
+
+  - Example of (contraproducentes) tests
+  - DNA does it
+  - Code snippets as puzzle peaces?(piezas) de puzle
+
+
+- Sandbox
+
+ -> grafical pool and forks con ret al final
+
+  Timeouts -> avoid dead loops
+  Signal handling -> control segfaults and other signals 
+  Warning -> self-modifying parent process (specially evaluation alteration?)
+
+  There are 4 execution terminations:
+  	1. OK
+	2. TIMEOUT (sigalarm caused by infinite loops)
+	3. CRASH (segfault, invalid address)
+	4. UNKNOWN (other signals)
+
+
+- Evaluation function
+
+	- Same concept
+		fitness, scoring, evaluation, error function
+
+	- Static heuristics from radare (invalid instructions, jumps out of scope, etc)
+
+	- laberinto de la interrupcion, el camino menos aparente
+
+
+	- Tf -> time evaluation cost
+
+        - Congverting to trigger a vulnerability ?
+		how to measure?
+		some poor no direct ways like oom, process stats, processor exceptions GP,SS,NP,PF,AC,  segfault error code
+		
+
+	- Evolving to DoS is feasible 
+
+		DoS laberithm map
+		some ends: segfaults, dead loops, traps, invalid instructions, invalid syscalls params, crashes, AND non reliable
+		
+                measure resource consumption, avoid be detected by oom and other protections,  
+		
+		coverage?
+	
+	- if we reward a 0crashes termination, will trend to program ret
+	- if we reward a cpu usage, it will trend to create a dead-loop
+
+		- posibility to do it remotelly evolvig packets instead code measuring the remote system resources.
+
+- Next experiment
+	- external AI on tensorflow

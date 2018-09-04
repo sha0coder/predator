@@ -4,6 +4,7 @@
 #include <random>
 #include <fstream>
 #include <assert.h>
+#include <r_socket.h>
 #include "include/genotype.hpp"
 
 using namespace std;
@@ -11,9 +12,11 @@ using namespace std;
 Genotype::Genotype(unsigned long sz) {
     this->fitness = 0;
     this->alloc(sz);
+    this->r2 = r2p_open ("r2 -q0");
 }
 
 Genotype::~Genotype(void) {
+    r2p_close(this->r2);
     this->dealloc();
 }
 
@@ -105,3 +108,23 @@ char Genotype::get(int pos) {
     assert(pos<this->sz);
     return this->buff[pos];
 }
+
+char *Genotype::r2_asm_blocks() {
+    if (!this->r2) {
+        cout << "Genotype::r2cmd() r2 was not opened" << endl;
+        return;
+    }
+    return r2p_cmd(this->r2, "pD 0x10"); // TODO: don't hardcode the size
+
+    // TODO: return the list of instruction sizes
+    // esplitar por \n, localizar la longitud
+}
+
+void Genotype::r2_print_asm() {
+    if (!this->r2) {
+        cout << "Genotype::r2cmd() r2 was not opened" << endl;
+        return;
+    }
+    r2p_cmd(this->r2, "pD 0x10"); // TODO: don't hardcode the size
+}
+

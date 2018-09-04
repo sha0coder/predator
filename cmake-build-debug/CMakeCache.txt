@@ -182,6 +182,9 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 //Path to a program.
 CMAKE_STRIP:FILEPATH=/usr/bin/strip
 
+//If true, cmake will use relative paths in makefiles and projects.
+CMAKE_USE_RELATIVE_PATHS:BOOL=OFF
+
 //If this value is on, makefiles will be generated without the
 // .SILENT directive, and all commands will be echoed to the console
 // during the make.  This is useful for debugging only. With Visual
@@ -194,11 +197,23 @@ ProcessorCount_cmd_getconf:FILEPATH=/usr/bin/getconf
 //Path to a program.
 ProcessorCount_cmd_sysctl:FILEPATH=/sbin/sysctl
 
+//The directory containing a CMake configuration file for libr.
+libr_DIR:PATH=libr_DIR-NOTFOUND
+
 //Value Computed by CMake
 predator_BINARY_DIR:STATIC=/home/user/src/predator/cmake-build-debug
 
 //Value Computed by CMake
 predator_SOURCE_DIR:STATIC=/home/user/src/predator
+
+//Dependencies for target
+r_socket_LIB_DEPENDS:STATIC=
+
+//Dependencies for target
+r_util_LIB_DEPENDS:STATIC=
+
+//The directory containing a CMake configuration file for rlib.
+rlib_DIR:PATH=rlib_DIR-NOTFOUND
 
 
 ########################
@@ -307,6 +322,8 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
+CMAKE_NUMBER_OF_LOCAL_GENERATORS:INTERNAL=1
+//number of local generators
 CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
@@ -346,6 +363,8 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 CMAKE_STRIP-ADVANCED:INTERNAL=1
 //uname command
 CMAKE_UNAME:INTERNAL=/bin/uname
+//ADVANCED property for variable: CMAKE_USE_RELATIVE_PATHS
+CMAKE_USE_RELATIVE_PATHS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: ProcessorCount_cmd_getconf

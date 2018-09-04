@@ -1,0 +1,63 @@
+R2CON Talk r2con@radare.org
+Speaker: @sha0coder
+
+Evolving binary code.
+
+- It's possible to create binary code automatically and evolve it towards a target by reducing an error rate, 
+  this can be used to many things like finding vulnerabilities, or programming specific algorithms automatically.
+  Radare provides the visualization api to represent the evolving code.
+
+
+- Automating the automation:
+  Doing a software that makes software in an useful way is still a challenge nowadays.
+
+- Limitations:
+  Nowadays the IA algorithms requires many iterations, can be compared with using brute-forcing.
+  to solve problems but is not really brute-forcing, many times there is an evolution path to the solution.
+
+- Code generator:
+  - Begin from a random code vs begin from one byte length code.
+
+- Mutation engine:
+  - Pinpointing the probabilities optimizes a lot the evolution.
+  - The mutation of operands needs more probability than mutation the opcode.
+  - Depending on the opcode the probability also vary, is not the same mutating from inc to dec,
+    than from inc to jmp.
+  - Using r2pipe for opcode classification.
+  - trick, pinpointing sysetenter probability in order increment the syscall usage.
+
+- Evaluation function:
+  - The evaluation function (also named fitness or error rate) is the key function that
+    drives the evolution in the correct way.
+  - Is there any evaluation function that drives the code evolution from a nop to an reliable exploit code?
+  - Measuring how near the code is to the vulnerability.
+  - Metrics, Indicators, scoring logic and optimization.
+  - oom score and other metrics.
+  - Test programming paradigm.
+  - Automatic malware programming and evolving.
+  - Automatic extreme obfuscation.
+  - The evolution is not lineal.
+    On the evolution path there are stagnations and generational jumps.
+ 
+- Does code crossover make sense?
+  - DNA does it.
+  - The code A passes the test 1 and 2, and the code B passes the test 3 and 4.
+    In this case the crossover could create a code that passes all the test,
+    but also could create codes that doesn't pass any test.
+    Which is in the practice more effective?
+
+- Keeping the diversity:
+  - Why this is key to avoid evolutionary blocks and stagnations
+
+- Binary visualization
+  - r2pipe communications.
+
+- Sandboxing and controlling the execution.
+  - Several signals must be handled properly.
+  - A timeout is needed for avoiding infinite loops.
+  - Emulation is too slow, using virtualization with QubesOS.
+
+- Demo:
+    Prof of Concept powered by C++ and Radare2.
+
+
