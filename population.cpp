@@ -5,17 +5,19 @@
 
 #include "include/population.hpp"
 #include "include/sandbox.hpp"
-
+#include "include/r2.hpp"
 
 
 using namespace std;
 
 Population::Population(unsigned int popu_sz, unsigned long geno_sz) {
+    this->r2 = new R2();
     this->id = rand() % 1024;
     this->sandbox = new Sandbox();
     //this->sandbox->debug();
     this->pop_sz = popu_sz;
     this->geno_sz = geno_sz;
+    this->best = NULL;
     for (unsigned int i=0; i<popu_sz; i++) {
         auto *geno = new Genotype(geno_sz);
         geno->random();
@@ -31,6 +33,7 @@ Population::Population(unsigned int popu_sz, unsigned long geno_sz) {
 Population::~Population() {
     delete this->sandbox;
     this->clear();
+    delete r2;
     cout << "Population engine off" << endl;
 }
 
@@ -64,14 +67,19 @@ void Population::sort(void) {
         this->sorted[i] = tmp;
     }
 
+    if (this->best != NULL)
+        delete this->best;
 
-    this->best = this->popu[this->sorted[0]]; //->clone();
+    this->best = this->popu[this->sorted[0]]->clone();
+
+    cout << "best: " << endl;
+    this->best->show();
 
     // Save Best to file
 
-    stringstream filename;
-    filename << "best_" << this->best->get_fitness() << ".bin";
-    this->best->save(filename.str().c_str());
+    //stringstream filename;
+    //filename << "best_" << this->best->get_fitness() << ".bin";
+    //this->best->save(filename.str().c_str());
 
 
 
@@ -90,21 +98,77 @@ void Population::eval(void) {
 }
 
 
-void Population::crossover2(void) {
-    //TODO: crossver of logical instructions
+void Population::asm_crossover(void) {
+    // Logical instruction level crossover
+    Genotype *g1, *g2;
+    vector<unsigned int> szs1, szs2;
+
+    int top = this->popu.size()*0.05;
+
+    for (int i=0; i<top-2; i++) {
+        for (int j=2; j<top; j++) {
+            g1 = this->popu[this->sorted[i]];
+            g2 = this->popu[this->sorted[j]];
+
+            r2->load(g1);
+            szs1 = r2->get_instruction_sizes();
+            r2->load(g2);
+            szs2 = r2->get_instruction_sizes();
+
+            // Halfs
+            int k;
+            int sz1 = szs1.size();
+            int sz2 = szs2.size();
+            int half_asm1 = sz1/2;
+            int half_asm2 = sz2/2;
+            int half_bytes1 = 0;
+            int half_bytes2 = 0;
+
+            for (k=0; k<half_asm1; k++)
+                half_bytes1 += szs1[k];
+            for (k=0; k<half_asm2; k++)
+                half_bytes2 += szs2[k];
+            
+
+            //int q1 = half/2;
+            //int q2 = half+q1;
+            Genotype *child1 = new Genotype(this->geno_sz);
+            Genotype *child2 = new Genotype(this->geno_sz);
+          
+
+            for (k=0; k < this->geno_sz; k++) {
+
+                if (k < half_asm1) {
+                    child1->put(k, g1->read()[k]);
+                } else {
+                    child2->put(k, g1->read()[k]);
+                }
+
+                if (k < half_asm2) {
+                    child2->put(k, g2->read()[k]);
+                } else {
+                    child1->put(k, g2->read()[k]);
+                }
+
+            }
+            
+        }
+    }
+
 
 }
 
+/*
 static void r2cmd(R2Pipe *r2, const char *cmd) {
     char *msg = r2p_cmd(r2, cmd);
     if (msg) {
         printf ("%s\n", msg);
         free (msg);
     }
-}
+}*/
 
 
-void Population::crossover(void) {
+void Population::byte_crossover(void) {
     char *gen1, *gen2;
 
     int top = this->popu.size()*0.05;
@@ -310,12 +374,20 @@ void Population::mutate(int prob) {
 }
 
 void Population::change_generation() {
+    int i;
+    for (i=0; i<this->popu.size(); i++) {
+        delete this->popu[i];
+    }
     this->popu.clear();
+
     for (int i=0; i<this->ng.size(); i++) {
         this->popu.push_back(this->ng[i]);
     }
     this->ng.clear();
-    this->best = NULL;
+    if (this->best != NULL) {
+        delete this->best;
+        this->best = NULL;
+    }
 }
 
 void Population::show_fitness(void) {
@@ -326,7 +398,7 @@ void Population::show_fitness(void) {
 void Population::diversity(void) {
     register long sz = this->popu.size();
     while(this->ng.size() < this->pop_sz) {
-        this->ng.push_back(this->popu[rand()%sz]);
+        this->ng.push_back(this->popu[rand()%sz]->clone());
     }
 }
 
@@ -348,14 +420,26 @@ void Population::evolve(unsigned int generations) {
             //cout << "finess[" << i << "]: " << this->popu[i]->get_fitness() << endl;
             sum += this->popu[i]->get_fitness();
         }
-        sum /= this->popu.size();
+        if (sum >= 1)
+            sum /= this->popu.size();
+        else
+            sum = 0;
 
+        if (best == NULL)
+            cout << "WTFFFFF" << endl;
+
+        this->r2->load(best);
+        this->r2->print_asm();
+
+        /*
         this->best->save("best.gen.bin");
         R2Pipe *r2 = r2p_open ("r2 -q0 best.gen.bin");
         if (r2) {
             r2cmd(r2, "pD 0x10");
             r2p_close(r2);
-        }
+        }*/
+
+
 
         cout << this->id << " ======================================================================" << endl;
         cout << "Generation " << g << " best fitness: " << this->best->get_fitness();
@@ -366,7 +450,7 @@ void Population::evolve(unsigned int generations) {
             break;
 
         this->ng.clear();
-        this->crossover();
+        this->byte_crossover();
         this->mutate(8/g);
 
         // best survive

@@ -197,7 +197,6 @@ void Sandbox::run(Genotype *geno) {
                 if (this->isDebug)
                     std::cout << " EXECUTION OK!!" << std::endl;
                 result = this->RES_OK;
-    
 
             } else {
                 if (this->isDebug)
