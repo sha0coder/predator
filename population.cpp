@@ -67,13 +67,18 @@ void Population::sort(void) {
         this->sorted[i] = tmp;
     }
 
-    if (this->best != NULL)
-        delete this->best;
+    if (this->best == NULL) {
+        cout << "no hay best" << endl;
+        this->best = this->popu[this->sorted[0]]->clone();
+    } else {
+        if (this->popu[this->sorted[0]]->get_fitness() > this->best->get_fitness()) {
+            cout << "cambio de best better:" << this->popu[this->sorted[0]]->get_fitness() << " gana al best:" << this->best->get_fitness() << endl;
+            delete this->best;
+            this->best = this->popu[this->sorted[0]]->clone();
+        }
+    }
 
-    this->best = this->popu[this->sorted[0]]->clone();
 
-    cout << "best: " << endl;
-    this->best->show();
 
     // Save Best to file
 
@@ -384,10 +389,6 @@ void Population::change_generation() {
         this->popu.push_back(this->ng[i]);
     }
     this->ng.clear();
-    if (this->best != NULL) {
-        delete this->best;
-        this->best = NULL;
-    }
 }
 
 void Population::show_fitness(void) {
@@ -431,27 +432,18 @@ void Population::evolve(unsigned int generations) {
         this->r2->load(best);
         this->r2->print_asm();
 
-        /*
-        this->best->save("best.gen.bin");
-        R2Pipe *r2 = r2p_open ("r2 -q0 best.gen.bin");
-        if (r2) {
-            r2cmd(r2, "pD 0x10");
-            r2p_close(r2);
-        }*/
-
-
-
         cout << this->id << " ======================================================================" << endl;
         cout << "Generation " << g << " best fitness: " << this->best->get_fitness();
-        cout << " population: " << this->popu.size() << " global fitness: " << sum << " mutation: " << 8/g << endl;
+        cout << " population: " << this->popu.size() << " global fitness: " << sum << " mutation: " << 30/g << endl;
         this->best->show();
         cout << "======================================================================" << endl;
-        if (g>=generations)
+        if (g >= generations)
             break;
 
         this->ng.clear();
         this->byte_crossover();
-        this->mutate(8/g);
+        //cout << "ng: " << this->ng.size() << endl;
+        this->mutate(30/g);
 
         // best survive
         for (int i=0; i<3; i++)

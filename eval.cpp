@@ -154,7 +154,7 @@ float Eval::getMemScore() {
     if (mscore<0)
         mscore = 0;
 
-    mscore += statm[1]/50;
+    //mscore += statm[1]/50; parent
 
     mscore += statm[2];
 
@@ -166,7 +166,7 @@ float Eval::getMemScore() {
 
     mscore += statm[6];
 
-    //cout << "mscore: " << mscore << endl;
+    //cout << "mscore: " << statm[0]/1000 << " " << statm[1]/50  << " " << statm[2] << " " << statm[3]-10 << " " << statm[4] << " " << statm[5]/100 << " " << statm[6] << endl;
 
     return mscore;
 }
@@ -193,9 +193,9 @@ float Eval::get_fitness() {
 
     score += this->getIO();
 
-    score += this->getMemScore();
+    //score += this->getMemScore();
 
-
+    //cout << "nummaps:" << this->getNumMaps() << " io:" << this->getIO() << " mem: " << this->getMemScore() << endl;
     return  score;
 }
 

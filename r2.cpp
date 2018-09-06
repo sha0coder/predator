@@ -23,8 +23,6 @@ R2::~R2() {
 void R2::load(Genotype *g) {
     assert(g->size() == 0x20);
 
-    
-
     char *buff = g->read();
     char hex[68];
     hex[0] = 'w'; hex[1] = 'x'; hex[2] = ' ';
@@ -33,7 +31,6 @@ void R2::load(Genotype *g) {
         snprintf(p, 3, "%.2x", *((unsigned char *)&buff[i]));
     }
     hex[67] = 0x00;
-    printf("\n---->%s\n", hex);
     r2p_cmd(this->r2, hex);
 }
 

@@ -182,6 +182,7 @@ void Sandbox::run(Genotype *geno) {
             if (WIFEXITED(stat)) {
 
                 signal(SIGALRM, pipe_alarm);
+                memset(cfitness, 0, sizeof(cfitness));
                 alarm(this->TIMEOUT);
                 sz = read(pipefd[0], cfitness, 4);
                 alarm(0);
