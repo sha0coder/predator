@@ -185,7 +185,8 @@ float Eval::get_fitness() {
     if (oom > 0)
         cout << "oom score: " << oom << endl;
 
-    score -= oom*10;
+    //score -= oom*10;
+    score += oom*10;
 
     maps = this->getNumMaps();
     if (maps>30)

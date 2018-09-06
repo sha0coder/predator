@@ -1,6 +1,8 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <random>
+#include <limits>
 #include <r_socket.h>
 
 #include "include/population.hpp"
@@ -68,11 +70,10 @@ void Population::sort(void) {
     }
 
     if (this->best == NULL) {
-        cout << "no hay best" << endl;
         this->best = this->popu[this->sorted[0]]->clone();
     } else {
         if (this->popu[this->sorted[0]]->get_fitness() > this->best->get_fitness()) {
-            cout << "cambio de best better:" << this->popu[this->sorted[0]]->get_fitness() << " gana al best:" << this->best->get_fitness() << endl;
+            //cout << "cambio de best better:" << this->popu[this->sorted[0]]->get_fitness() << " gana al best:" << this->best->get_fitness() << endl;
             delete this->best;
             this->best = this->popu[this->sorted[0]]->clone();
         }
@@ -432,13 +433,26 @@ void Population::evolve(unsigned int generations) {
         this->r2->load(best);
         this->r2->print_asm();
 
+        // save stats
+        ofstream fda;
+        fda.open("stats",  ios::out|ios::app);
+        fda << g << "," << this->best->get_fitness() << "," << sum << endl;
+        fda.close();
+
+
+
+
         cout << this->id << " ======================================================================" << endl;
         cout << "Generation " << g << " best fitness: " << this->best->get_fitness();
-        cout << " population: " << this->popu.size() << " global fitness: " << sum << " mutation: " << 30/g << endl;
+        cout << " population: " << this->popu.size() << " global fitness: " << sum << " mutation: " << (float)(30/g) << endl;
         this->best->show();
         cout << "======================================================================" << endl;
         if (g >= generations)
             break;
+
+
+        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+
 
         this->ng.clear();
         this->byte_crossover();
