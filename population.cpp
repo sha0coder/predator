@@ -98,7 +98,7 @@ void Population::sort(void) {
 
 void Population::eval(void) {
     for (int i=0; i<this->popu.size(); i++) {
-        this->popu[i]->random();
+        //this->popu[i]->random();
         this->sandbox->run(this->popu[i]);
     }
 }
