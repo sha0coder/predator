@@ -451,7 +451,7 @@ void Population::evolve(unsigned int generations) {
             break;
 
 
-        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+        //cin.ignore(numeric_limits<streamsize>::max(),'\n');
 
 
         this->ng.clear();
