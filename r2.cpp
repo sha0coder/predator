@@ -10,13 +10,13 @@ using namespace std;
 
 R2::R2() {
     cout << "opening link" << endl;
-    this->r2 = r2p_open("r2 -w -q0 malloc://32");
+    this->r2 = r2pipe_open("r2 -w -q0 malloc://32");
     cout << "link ok" << endl;
 }
 
 R2::~R2() {
     cout << "closing link" << endl;
-    r2p_close(this->r2);
+    r2pipe_close(this->r2);
     cout << "link closed" << endl;
 }
 
@@ -31,7 +31,7 @@ void R2::load(Genotype *g) {
         snprintf(p, 3, "%.2x", *((unsigned char *)&buff[i]));
     }
     hex[67] = 0x00;
-    r2p_cmd(this->r2, hex);
+    r2pipe_cmd(this->r2, hex);
 }
 
 vector<unsigned int> R2::get_instruction_sizes() {
@@ -42,7 +42,7 @@ vector<unsigned int> R2::get_instruction_sizes() {
     }
     
     string::size_type sz;
-    char *szs = r2p_cmd(this->r2, "pdl 0x20 ~!0");
+    char *szs = r2pipe_cmd(this->r2, "pdl 0x20 ~!0");
     string sszs = string(szs);
     vector<string> snums;
 
@@ -62,7 +62,7 @@ void R2::print_asm(void) {
         return;
     }
 
-    printf("%s\n",r2p_cmd(this->r2, "pD 0x20")); // TODO: don't hardcode the size    
+    printf("%s\n",r2pipe_cmd(this->r2, "pD 0x20")); // TODO: don't hardcode the size    
 }
 
 bool R2::has_invalid_instructions(void) {
@@ -73,7 +73,7 @@ bool R2::has_invalid_instructions(void) {
 
     vector<unsigned int> opcodes_sz;
     string::size_type sz;
-    char *szs = r2p_cmd(this->r2, "pdl 0x20");
+    char *szs = r2pipe_cmd(this->r2, "pdl 0x20");
     string sszs = string(szs);
     vector<string> snums;
     int sum = 0;

@@ -1,0 +1,11 @@
+RADARE2
+
+    wget https://github.com/radareorg/radare2
+    sudo sys/install.sh
+
+
+R2PIPE
+
+    on includes/r2.hpp  modify the include "r_socket.h" 
+    to point full path of r_socket.h on radare2 source.
+    
