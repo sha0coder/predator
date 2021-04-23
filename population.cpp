@@ -3,7 +3,6 @@
 #include <fstream>
 #include <random>
 #include <limits>
-#include <r_socket.h>
 
 #include "include/population.hpp"
 #include "include/sandbox.hpp"
@@ -20,6 +19,8 @@ Population::Population(unsigned int popu_sz, unsigned long geno_sz) {
     this->pop_sz = popu_sz;
     this->geno_sz = geno_sz;
     this->best = NULL;
+
+
     for (unsigned int i=0; i<popu_sz; i++) {
         auto *geno = new Genotype(geno_sz);
         geno->random();

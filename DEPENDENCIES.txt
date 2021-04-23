@@ -6,6 +6,6 @@ RADARE2
 
 R2PIPE
 
-    on includes/r2.hpp  modify the include "r_socket.h" 
+    on include/r2.hpp  modify the include "r_socket.h" 
     to point full path of r_socket.h on radare2 source.
     
