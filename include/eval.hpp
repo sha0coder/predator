@@ -20,7 +20,6 @@ public:
     float getVMEM();
     float getMemScore();
     float get_fitness();
-    void puta();
 };
 
 

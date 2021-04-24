@@ -9,7 +9,6 @@
 using namespace std;
 
 Genotype::Genotype(unsigned long sz) {
-    //__asm__ __volatile__ ("int $3");
     this->fitness = 0;
     this->alloc(sz);
 }
@@ -21,12 +20,13 @@ Genotype::~Genotype(void) {
 bool Genotype::alloc(unsigned long sz) {
     this->buff = (char *)malloc(sz+1);
     if (this->buff == NULL) {
-        cerr << "No memory for a new Genotype" << endl;
+        cerr << "No memory for a new Genotype sz:" << (sz+1) << endl;
         this->sz = 0;
         return false;
     }
 
     this->sz = sz;
+    return true;
 }
 
 void Genotype::dealloc(void) {

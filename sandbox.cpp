@@ -24,7 +24,7 @@ Sandbox::Sandbox() {
     this->pool_sz = pages * page_sz;
     this->pool = (char *)malloc(this->pool_sz);
     
-    if (this->pool != NULL) {
+    if (this->pool == NULL) {
         std::cout << "The Sandbox cannot allocate the pool size of " << this->pool_sz << std::endl;
         return;
     }

@@ -1,2 +1,5 @@
 .idea
 samples/
+.gdb_history
+.vscode
+CMakeFiles

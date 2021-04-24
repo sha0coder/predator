@@ -23,7 +23,7 @@ public:
     float get_fitness();
     void set_fitness(float fitness);
     void put(int pos, char c);
-    char get(int pos);
+    char get(int pos);  
 };
 
 
