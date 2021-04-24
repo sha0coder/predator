@@ -88,8 +88,6 @@ void Population::sort(void) {
     //filename << "best_" << this->best->get_fitness() << ".bin";
     //this->best->save(filename.str().c_str());
 
-
-
     /*
     if (!this->best || this->popu[this->sorted[0]]->get_fitness() > this->best->get_fitness()) {
         this->best = this->popu[this->sorted[0]]->clone();
@@ -164,16 +162,6 @@ void Population::asm_crossover(void) {
 
 
 }
-
-/*
-static void r2cmd(R2Pipe *r2, const char *cmd) {
-    char *msg = r2p_cmd(r2, cmd);
-    if (msg) {
-        printf ("%s\n", msg);
-        free (msg);
-    }
-}*/
-
 
 void Population::byte_crossover(void) {
     char *gen1, *gen2;
@@ -413,14 +401,16 @@ void Population::evolve(unsigned int generations) {
     cout << "Start evolving ... " << endl;
     for (g=1; g<generations; g++) {
 
+        cout << "evaluating ..." << endl;
         this->eval();
+        cout << "sorting ..." << endl;
         this->sort();
 
         //this->show_fitness();
 
         float sum = 0;
         for (int i=0; i<this->popu.size(); i++) {
-            //cout << "finess[" << i << "]: " << this->popu[i]->get_fitness() << endl;
+            cout << "finess[" << i << "]: " << this->popu[i]->get_fitness() << endl;
             sum += this->popu[i]->get_fitness();
         }
         if (sum >= 1)
@@ -431,6 +421,7 @@ void Population::evolve(unsigned int generations) {
         if (best == NULL)
             cout << "WTFFFFF" << endl;
 
+        cout << "r2 printing" << endl;
         this->r2->load(best);
         this->r2->print_asm();
 

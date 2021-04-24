@@ -31,6 +31,7 @@ void R2::load(Genotype *g) {
         snprintf(p, 3, "%.2x", *((unsigned char *)&buff[i]));
     }
     hex[67] = 0x00;
+
     r2pipe_cmd(this->r2, hex);
 }
 
@@ -53,16 +54,26 @@ vector<unsigned int> R2::get_instruction_sizes() {
         }
     }
 
+    free(szs);
     return opcodes_sz;
 }
 
 void R2::print_asm(void) {
+    char *out;
+
     if (!this->r2) {
         cout << "Genotype::r2cmd() r2 was not opened" << endl;
         return;
     }
 
-    printf("%s\n",r2pipe_cmd(this->r2, "pD 0x20")); // TODO: don't hardcode the size    
+    cout << "showing r2pipe cmd pD" << endl;
+    
+    out = r2pipe_cmd(this->r2, "pD 0x20");  // TODO: don't hardcode the size    
+
+    printf("%s\n", out); 
+
+    free(out);
+    cout << "done." << endl;
 }
 
 bool R2::has_invalid_instructions(void) {
