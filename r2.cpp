@@ -22,16 +22,17 @@ R2::~R2() {
 
 void R2::load(Genotype *g) {
     assert(g->size() == 0x20);
-
+   
     char *buff = g->read();
     char hex[68];
+    memset(hex, 0, 68);
     hex[0] = 'w'; hex[1] = 'x'; hex[2] = ' ';
     for (int i; i<32; i++) {
-        char *p = &hex[i*2+3];
-        snprintf(p, 3, "%.2x", *((unsigned char *)&buff[i]));
+        sprintf(hex, "%s %.2x", hex, *((unsigned char *)&buff[i]));
     }
     hex[67] = 0x00;
 
+    cout << hex << endl;
     r2pipe_cmd(this->r2, hex);
 }
 
@@ -67,9 +68,9 @@ void R2::print_asm(void) {
     }
 
     cout << "showing r2pipe cmd pD" << endl;
-    
+    printf("this->r2: %p\n", this->r2);
     out = r2pipe_cmd(this->r2, "pD 0x20");  // TODO: don't hardcode the size    
-
+  
     printf("%s\n", out); 
 
     free(out);

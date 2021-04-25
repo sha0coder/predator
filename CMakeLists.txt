@@ -26,6 +26,6 @@ add_executable(predator
         r2.cpp)
 
 
-target_link_libraries(predator "r_socket")
+target_link_libraries(predator "r_socket" "r_util" "dl")
 
 
